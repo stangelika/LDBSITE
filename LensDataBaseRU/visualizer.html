@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Визуализатор совместимости</title>
+    <link href="styles.css" rel="stylesheet">
+    <style>
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            background: #15161d;
+            min-height: 100vh;
+            width: 100vw;
+        }
+        body {
+            min-height: 100vh;
+            min-width: 100vw;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .main-center-wrap {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100vw;
+            min-height: 100vh;
+            justify-content: center;
+        }
+        .top-buttons {
+            position: fixed;
+            top: 20px;
+            right: 30px;
+            z-index: 20;
+            display: flex;
+            gap: 10px;
+        }
+        h1 {
+            margin-top: 110px;
+            margin-bottom: 30px;
+            font-size: 2.2rem;
+            background: linear-gradient(45deg, #4285f4, #34a853, #fbbc05, #ea4335);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            background-size: 300% 300%;
+            animation: gradient-animation 4s ease infinite;
+            text-align: center;
+        }
+        @keyframes gradient-animation {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        .filters {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 30px;
+            justify-content: center;
+            background: rgba(48,54,83,0.91);
+            border-radius: 17px;
+            padding: 30px 30px 18px 30px;
+            margin-bottom: 35px;
+            box-shadow: 0 4px 22px rgba(0,0,0,0.17);
+            border: 1.5px solid #2a2a3c;
+            max-width: 950px;
+        }
+        .filter-group {
+            flex: 1 1 380px;
+            min-width: 340px;
+            max-width: 600px;
+            margin: 0 16px 22px 16px;
+            display: flex;
+            flex-direction: column;
+            align-items: stretch;
+        }
+        .filter-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #b3bbc7;
+            font-size: 15px;
+        }
+        .filter-select {
+            width: 100%;
+            padding: 19px 27px;
+            border: 1.9px solid #333;
+            border-radius: 15px;
+            font-size: 1.18em;
+            background: #23263c;
+            color: #e0e0e0;
+            transition: all 0.2s;
+            margin-bottom: 0;
+            box-sizing: border-box;
+            font-family: inherit;
+        }
+        .filter-select:focus {
+            border-color: #4285f4;
+            outline: none;
+            box-shadow: 0 0 0 2px #4285f466;
+        }
+        .tab-content.active {
+            display: block;
+            width: 100%;
+        }
+        .visualization-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: flex-start;
+            gap: 35px;
+            padding: 16px 0 90px 0;
+            width: 100%;
+        }
+        #canvas-container {
+            position: relative;
+            width: 500px;
+            height: 500px;
+            border-radius: 15px;
+            overflow: hidden;
+            background: var(--bg-tertiary, #2a2a3c);
+            box-shadow: 0 4px 22px rgba(0,0,0,0.20);
+        }
+        canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+        .compatibility-result {
+            background: var(--bg-secondary, #23263c);
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 4px 22px rgba(0,0,0,0.18);
+            min-width: 340px;
+            max-width: 410px;
+            margin: 0 10px;
+        }
+        .compatibility-header {
+            padding: 18px;
+            background: linear-gradient(90deg, var(--accent-primary, #4285f4), #2a5bb1);
+            color: white;
+            border-radius: 15px 15px 0 0;
+        }
+        .compatibility-header h3 { margin: 0; font-weight: 600; }
+        .compatibility-body {
+            padding: 18px 18px 8px 18px;
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 13px;
+        }
+        .spec-item {
+            padding: 11px 8px 8px 10px;
+            border-left: 3px solid #4285f4;
+            background: rgba(48,54,83,0.18);
+            border-radius: 0 7px 7px 0;
+            font-size: 1.04em;
+        }
+        .spec-label {
+            font-size: 13px;
+            color: #b3bbc7;
+            margin-bottom: 4px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .spec-value {
+            font-size: 16px;
+            font-weight: 500;
+            color: #e0e0e0;
+        }
+        .footer {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background: #23263c;
+            padding: 15px;
+            text-align: center;
+            color: #b3bbc7;
+            border-top: 1px solid #333;
+            font-size: 0.96rem;
+            z-index: 10;
+        }
+        .footer-highlight {
+            font-weight: 600;
+            background: linear-gradient(45deg, #4285f4, #34a853, #fbbc05, #ea4335);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            background-size: 300% 300%;
+            animation: gradient-animation 4s ease infinite;
+        }
+        .close-visualizer {
+            background:transparent;
+            color:#fff;
+            border:none;
+            font-size:1.8em;
+            cursor:pointer;
+        }
+        @media (max-width: 1200px) {
+            .visualization-container {
+                flex-direction: column;
+                align-items: center;
+            }
+            #canvas-container { width: 100vw; max-width: 500px; }
+        }
+        @media (max-width: 768px) {
+            h1 { margin-top: 75px; font-size: 1.4rem;}
+            .filters { flex-direction: column; gap: 15px; padding: 15px; max-width: 99vw;}
+            #canvas-container { height: 380px; }
+            .compatibility-result { min-width: 90vw; max-width: 99vw;}
+        }
+        @media (max-width: 480px) {
+            #canvas-container { height: 260px; }
+            .filters { min-width: 97vw;}
+        }
+    </style>
+</head>
+<body>
+    <div class="top-buttons">
+        <button class="refresh-button" title="Обновить">↻</button>
+        <button class="close-visualizer" title="Закрыть" onclick="window.close()">✖</button>
+    </div>
+
+    <div class="main-center-wrap">
+        <h1>Визуализатор совместимости камер и объективов</h1>
+        
+        <div class="filters">
+            <div class="filter-group">
+                <label class="filter-label" for="cameraSelect">Камера</label>
+                <select id="cameraSelect" class="filter-select">
+                    <option value="">Загрузка камер...</option>
+                </select>
+            </div>
+            
+            <div class="filter-group">
+                <label class="filter-label" for="formatSelect">Формат записи</label>
+                <select id="formatSelect" class="filter-select" disabled>
+                    <option value="">Сначала выберите камеру</option>
+                </select>
+            </div>
+            
+            <div class="filter-group">
+                <label class="filter-label" for="lensSelect">Объектив</label>
+                <select id="lensSelect" class="filter-select">
+                    <option value="">Загрузка объективов...</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="tab-content active">
+            <div class="visualization-container">
+                <div id="canvas-container">
+                    <canvas id="sensorCanvas"></canvas>
+                    <canvas id="lensCanvas"></canvas>
+                </div>
+                
+                <div id="compatibilityResult" class="compatibility-result hidden">
+                    <div class="compatibility-header">
+                        <h3>Результат совместимости</h3>
+                    </div>
+                    <div class="compatibility-body">
+                        <div class="spec-item">
+                            <div class="spec-label">Камера</div>
+                            <div class="spec-value" id="compatCamera"></div>
+                        </div>
+                        <div class="spec-item">
+                            <div class="spec-label">Формат</div>
+                            <div class="spec-value" id="compatFormat"></div>
+                        </div>
+                        <div class="spec-item">
+                            <div class="spec-label">Объектив</div>
+                            <div class="spec-value" id="compatLens"></div>
+                        </div>
+                        <div class="spec-item">
+                            <div class="spec-label">Диагональ сенсора</div>
+                            <div class="spec-value" id="compatSensorDiag"></div>
+                        </div>
+                        <div class="spec-item">
+                            <div class="spec-label">Круг изображения</div>
+                            <div class="spec-value" id="compatImageCircle"></div>
+                        </div>
+                        <div class="spec-item" id="compatResult">
+                            <div class="spec-label">Совместимость</div>
+                            <div class="spec-value"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer">
+            <span class="footer-highlight">Визуализатор совместимости</span> © 2023
+        </div>
+    </div>
+
+    <script>
+        let camerasData = {};
+        let lensesData = [];
+        let autoLensId = null;
+
+        // hash: #lens=ID
+        (function() {
+            const hash = location.hash.replace('#', '');
+            const params = {};
+            hash.split('&').forEach(kv => {
+                const [k, v] = kv.split('=');
+                params[k] = decodeURIComponent(v || '');
+            });
+            if (params.lens) autoLensId = params.lens;
+        })();
+
+        // DOM элементы
+        const cameraSelect = document.getElementById('cameraSelect');
+        const formatSelect = document.getElementById('formatSelect');
+        const lensSelect = document.getElementById('lensSelect');
+        const sensorCanvas = document.getElementById('sensorCanvas');
+        const lensCanvas = document.getElementById('lensCanvas');
+        const compatibilityResult = document.getElementById('compatibilityResult');
+        const refreshButton = document.querySelector('.refresh-button');
+
+        const CANVAS_SIZE = 500;
+        sensorCanvas.width = CANVAS_SIZE;
+        sensorCanvas.height = CANVAS_SIZE;
+        lensCanvas.width = CANVAS_SIZE;
+        lensCanvas.height = CANVAS_SIZE;
+        const SCALE_FACTOR = 5;
+
+        function loadCameraData(callback) {
+            fetch('cameradata.json')
+                .then(response => response.json())
+                .then(data => {
+                    camerasData = data;
+                    populateCameraSelect(callback);
+                })
+                .catch(error => {
+                    console.error('Ошибка загрузки данных камер:', error);
+                    cameraSelect.innerHTML = '<option value="">Ошибка загрузки данных</option>';
+                });
+        }
+
+        function loadLensesData(callback) {
+            fetch('Data.json')
+                .then(r => r.json())
+                .then(data => {
+                    lensesData = data.lenses || [];
+                    callback && callback();
+                })
+                .catch(err => {
+                    lensSelect.innerHTML = '<option value="">Ошибка загрузки Data.json</option>';
+                });
+        }
+
+        function populateCameraSelect(onSelected) {
+            cameraSelect.innerHTML = '<option value="">Выберите камеру</option>';
+            let keys = Object.keys(camerasData.items_camera || {});
+            keys.forEach((key,i) => {
+                const camera = camerasData.items_camera[key];
+                const option = document.createElement('option');
+                option.value = key;
+                option.textContent = `${camera.manufacturer} ${camera.model}`;
+                cameraSelect.appendChild(option);
+            });
+            // Выбрать первую (после placeholder)
+            if (keys.length) {
+                cameraSelect.selectedIndex = 1; // 0 - placeholder
+                cameraSelect.dispatchEvent(new Event('change'));
+                if (typeof onSelected === 'function') setTimeout(onSelected, 100);
+            }
+        }
+
+        function populateLensSelect() {
+            lensSelect.innerHTML = '<option value="">Выберите объектив</option>';
+            lensesData.forEach(lens => {
+                const option = document.createElement('option');
+                option.value = lens.id;
+                option.textContent = lens.display_name || `Объектив ${lens.id}`;
+                option.dataset.imageCircle = lens.image_circle;
+                lensSelect.appendChild(option);
+            });
+            // Автовыбор
+            if (autoLensId) {
+                for (let i = 0; i < lensSelect.options.length; i++) {
+                    if (lensSelect.options[i].value === autoLensId) {
+                        lensSelect.selectedIndex = i;
+                        break;
+                    }
+                }
+            }
+            updateVisualization();
+        }
+
+        cameraSelect.addEventListener('change', function() {
+            formatSelect.innerHTML = '<option value="">Выберите формат</option>';
+            formatSelect.disabled = !this.value;
+            if (!this.value) return;
+            const cameraId = camerasData.items_camera[this.value].id;
+            const formats = camerasData.recording_formats.filter(f => f.camera_id == cameraId);
+            formats.forEach((format,i) => {
+                const option = document.createElement('option');
+                option.value = format.id;
+                option.textContent = format.recording_format;
+                option.dataset.width = format.recording_width;
+                option.dataset.height = format.recording_height;
+                formatSelect.appendChild(option);
+            });
+            // По умолчанию выбрать первый формат (после placeholder)
+            if (formats.length) {
+                formatSelect.selectedIndex = 1;
+                formatSelect.disabled = false;
+                updateVisualization();
+            }
+        });
+
+        function updateVisualization() {
+            if (!cameraSelect.value || !formatSelect.value || !lensSelect.value) {
+                compatibilityResult.classList.add('hidden');
+                return;
+            }
+            visualizeCompatibility();
+        }
+
+        lensSelect.addEventListener('change', updateVisualization);
+        formatSelect.addEventListener('change', updateVisualization);
+
+        function visualizeCompatibility() {
+            const selectedCamera = camerasData.items_camera[cameraSelect.value];
+            const selectedFormat = formatSelect.options[formatSelect.selectedIndex];
+            const selectedLens = lensSelect.options[lensSelect.selectedIndex];
+
+            const sensorWidth = parseFloat(selectedFormat.dataset.width);
+            const sensorHeight = parseFloat(selectedFormat.dataset.height);
+            const imageCircle = parseFloat(selectedLens.dataset.imageCircle);
+
+            const sensorCtx = sensorCanvas.getContext('2d');
+            const lensCtx = lensCanvas.getContext('2d');
+
+            sensorCtx.clearRect(0, 0, sensorCanvas.width, sensorCanvas.height);
+            lensCtx.clearRect(0, 0, lensCanvas.width, lensCanvas.height);
+
+            const centerX = sensorCanvas.width / 2;
+            const centerY = sensorCanvas.height / 2;
+
+            // Круг изображения
+            const lensRadius = (imageCircle / 2) * SCALE_FACTOR;
+            lensCtx.beginPath();
+            lensCtx.arc(centerX, centerY, lensRadius, 0, Math.PI * 2);
+            lensCtx.strokeStyle = 'var(--accent-primary, #4285f4)';
+            lensCtx.lineWidth = 3;
+            lensCtx.stroke();
+            lensCtx.fillStyle = 'rgba(66, 133, 244, 0.1)';
+            lensCtx.fill();
+
+            // Сенсор камеры
+            const sensorX = centerX - (sensorWidth * SCALE_FACTOR) / 2;
+            const sensorY = centerY - (sensorHeight * SCALE_FACTOR) / 2;
+
+            sensorCtx.beginPath();
+            sensorCtx.rect(
+                sensorX,
+                sensorY,
+                sensorWidth * SCALE_FACTOR,
+                sensorHeight * SCALE_FACTOR
+            );
+            sensorCtx.strokeStyle = '#fbbc05';
+            sensorCtx.lineWidth = 3;
+            sensorCtx.stroke();
+            sensorCtx.fillStyle = 'rgba(251, 188, 5, 0.1)';
+            sensorCtx.fill();
+
+            const sensorDiagonal = Math.sqrt(sensorWidth**2 + sensorHeight**2);
+            const isCompatible = sensorDiagonal <= imageCircle;
+
+            document.getElementById('compatCamera').textContent = `${selectedCamera.manufacturer} ${selectedCamera.model}`;
+            document.getElementById('compatFormat').textContent = selectedFormat.text;
+            document.getElementById('compatLens').textContent = selectedLens.text;
+            document.getElementById('compatSensorDiag').textContent = `${sensorDiagonal.toFixed(2)} мм`;
+            document.getElementById('compatImageCircle').textContent = `${imageCircle} мм`;
+
+            const resultItem = document.querySelector('#compatResult .spec-value');
+            resultItem.textContent = isCompatible ? '✓ Совместим' : '✗ Не совместим';
+            resultItem.style.color = isCompatible ? '#34a853' : '#ea4335';
+
+            compatibilityResult.classList.remove('hidden');
+        }
+
+        refreshButton.addEventListener('click', function() {
+            loadCameraData(function() {
+                loadLensesData(populateLensSelect);
+            });
+        });
+
+        // Инициализация: камеры, потом объективы, потом выбрать по умолчанию
+        loadCameraData(function() {
+            loadLensesData(populateLensSelect);
+        });
+    </script>
+</body>
+</html>
