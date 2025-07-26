@@ -1,4 +1,4 @@
-const API_URL = "https://script.google.com/macros/s/AKfycbzDzKQ3AU6ynZuPjET0NWqYMlDXMt5UKVPBOq9g7XurJKPoulWuPVVIl9U8eq_nSCG6/exec";
+const API_URL = "https://lksrental.site/api.php?action=all";
 const LOCAL_DATA_URL = "Data.json";
 let appData = {
     rentals: [],
@@ -67,9 +67,31 @@ async function loadData() {
         const apiResponse = await fetch(API_URL);
         if (!apiResponse.ok) throw new Error('Ошибка загрузки данных с API');
         
-        const apiData = await apiResponse.json();
-        appData = apiData;
-        statusEl.textContent = `Данные загружены с API: ${new Date(apiData.last_updated).toLocaleString()}`;
+        const apiResponseData = await apiResponse.json();
+        
+        // Handle new API format with success and database fields
+        if (apiResponseData.success && apiResponseData.database) {
+            // Convert inventory array to the expected format
+            const inventoryByRental = {};
+            if (apiResponseData.database.inventory) {
+                apiResponseData.database.inventory.forEach(item => {
+                    if (!inventoryByRental[item.rental_id]) {
+                        inventoryByRental[item.rental_id] = [];
+                    }
+                    inventoryByRental[item.rental_id].push(item);
+                });
+            }
+            
+            appData = {
+                rentals: apiResponseData.database.rentals || [],
+                lenses: apiResponseData.database.lenses || [],
+                inventory: inventoryByRental,
+                last_updated: new Date().toISOString()
+            };
+            statusEl.textContent = `Данные загружены с нового API: ${new Date().toLocaleString()}`;
+        } else {
+            throw new Error(apiResponseData.error || 'Неизвестная ошибка API');
+        }
         
     } catch (apiError) {
         console.error('Ошибка загрузки с API:', apiError);
